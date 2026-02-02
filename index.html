@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Préstamos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    button:hover {
+      background-color: #1e40af;
+    }
+    .resultados {
+      margin-top: 20px;
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: right;
+    }
+    th {
+      background: #e5e7eb;
+    }
+    td:first-child, th:first-child {
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      table {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Calculadora de Préstamos</h1>
+
+    <label>Monto del préstamo (Capital)</label>
+    <input type="number" id="capital" placeholder="Ej: 10000">
+
+    <label>Tasa de interés</label>
+    <input type="number" id="tasa" placeholder="Ej: 12">
+
+    <label>Tipo de tasa</label>
+    <select id="tipoTasa">
+      <option value="anual">Anual</option>
+      <option value="mensual">Mensual</option>
+    </select>
+
+    <label>Número de meses</label>
+    <input type="number" id="meses" placeholder="Ej: 24">
+
+    <button onclick="calcularPrestamo()">Calcular</button>
+
+    <div id="resultado" class="resultados" style="display:none;"></div>
+  </div>
+
+  <script>
+    function calcularPrestamo() {
+      const capital = parseFloat(document.getElementById("capital").value);
+      let tasa = parseFloat(document.getElementById("tasa").value);
+      const meses = parseInt(document.getElementById("meses").value);
+      const tipoTasa = document.getElementById("tipoTasa").value;
+
+      if (!capital || !tasa || !meses) {
+        alert("Por favor completa todos los campos");
+        return;
+      }
+
+      // Convertir tasa a mensual
+      if (tipoTasa === "anual") {
+        tasa = tasa / 12 / 100;
+      } else {
+        tasa = tasa / 100;
+      }
+
+      // Fórmula de amortización francesa
+      const cuota = capital * (tasa * Math.pow(1 + tasa, meses)) / (Math.pow(1 + tasa, meses) - 1);
+
+      let saldo = capital;
+      let totalInteres = 0;
+
+      let html = `
+        <h3>Resultados</h3>
+        <p><strong>Capital retirado del banco:</strong> S/ ${capital.toFixed(2)}</p>
+        <p><strong>Cuota mensual:</strong> S/ ${cuota.toFixed(2)}</p>
+        <p><strong>Total a pagar:</strong> S/ ${(cuota * meses).toFixed(2)}</p>
+        <p><strong>Intereses totales:</strong> S/ ${((cuota * meses) - capital).toFixed(2)}</p>
+
+        <table>
+          <tr>
+            <th>Mes</th>
+            <th>Cuota</th>
+            <th>Interés</th>
+            <th>Capital</th>
+            <th>Saldo</th>
+          </tr>
+      `;
+
+      for (let i = 1; i <= meses; i++) {
+        const interes = saldo * tasa;
+        const amortizacion = cuota - interes;
+        saldo -= amortizacion;
+        totalInteres += interes;
+
+        html += `
+          <tr>
+            <td>${i}</td>
+            <td>${cuota.toFixed(2)}</td>
+            <td>${interes.toFixed(2)}</td>
+            <td>${amortizacion.toFixed(2)}</td>
+            <td>${saldo > 0 ? saldo.toFixed(2) : "0.00"}</td>
+          </tr>
+        `;
+      }
+
+      html += `</table>`;
+
+      const resultado = document.getElementById("resultado");
+      resultado.innerHTML = html;
+      resultado.style.display = "block";
+    }
+  </script>
+
+</body>
+</html>
